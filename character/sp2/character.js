@@ -1,4 +1,5 @@
 const characters = {
+	star_fazheng: ["male", "shu", 3, ["starzhiji", "staranji"]],
 	matie: ["male", "qun", 4, ["dczhuiwang", "dcquxian"]],
 	hansong: ["male", "qun", 3, ["dcyinbi", "dcshuaiyan"]],
 	chezhou: ["male", "wei", 4, ["dcshefu", "dcpigua"]],
@@ -13,7 +14,7 @@ const characters = {
 	star_caoren: ["male", "wei", 4, ["starsujun", "starlifeng"]],
 	star_sunshangxiang: ["female", "wu", 3, ["starsaying", "starjiaohao"]],
 	dc_jikang: ["male", "wei", 3, ["new_qingxian", "dcjuexiang"], ["die:jikang"]],
-	dc_jsp_guanyu: ["male", "wei", 4, ["new_rewusheng", "dcdanji"]],
+	dc_jsp_guanyu: ["male", "wei", 4, ["new_rewusheng", "dcdanji"], ["die:jsp_guanyu", "tempname:jsp_guanyu"]],
 	dc_mengda: ["male", "wei", 4, ["dclibang", "dcwujie"]],
 	//dc_fuwan:['male','qun',4,['dcmoukui']],
 	guānning: ["male", "shu", 3, ["dcxiuwen", "longsong"]],
@@ -62,7 +63,7 @@ const characters = {
 	dongxie: ["female", "qun", 4, ["dcjiaoxia", "dchumei"]],
 	wangrong: ["female", "qun", 3, ["minsi", "jijing", "zhuide"]],
 	ol_dingyuan: ["male", "qun", 4, ["cixiao", "xianshuai"]],
-	re_hejin: ["male", "qun", 4, ["spmouzhu", "spyanhuo"]],
+	re_hejin: ["male", "qun", 4, ["spmouzhu", "spyanhuo"], ["die:hejin"]],
 	re_hansui: ["male", "qun", 4, ["spniluan", "spweiwu"], ["die:hansui"]],
 	liuhong: ["male", "qun", 4, ["yujue", "tuxing"]],
 	zhujun: ["male", "qun", 4, ["gongjian", "kuimang"]],

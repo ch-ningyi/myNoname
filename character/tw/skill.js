@@ -637,13 +637,16 @@ const skills = {
 				},
 				filter(event, player) {
 					if (!event.gaintag.includes("twciyin")) return false;
-					const cards = player.getExpansions("twciyin");
 					const history = game.getAllGlobalHistory("everything", evt => evt.name == "twciyin_heart" && evt.player == player);
 					const limit = history.map(evt => evt.cost_data).flat();
-					return (cards.length % 3 == 0 || event.cards.length > 2) && (!limit.includes("选项一") || (!limit.includes("选项二") && player.countCards("h") < player.maxHp));
+					return !limit.includes("选项一") || (!limit.includes("选项二") && player.countCards("h") < player.maxHp);
+				},
+				getIndex(event, player) {
+					const history = game.getAllGlobalHistory("everything", evt => evt.name == "twciyin_heart" && evt.player == player);
+					const limit = history.map(evt => evt.cost_data).flat();
+					return Math.floor(player.getExpansions("twciyin").length / 3) - limit.length;
 				},
 				async cost(event, trigger, player) {
-					const goon = player.getExpansions("twciyin").length > 5;
 					const history = game.getAllGlobalHistory("everything", evt => evt.name == "twciyin_heart" && evt.player == player);
 					const limit = history.map(evt => evt.cost_data).flat();
 					const choices = [];
@@ -652,30 +655,23 @@ const skills = {
 					else choiceList[0] = '<span style="opacity:0.5;">' + choiceList[0] + "</span>";
 					if (!limit.includes("选项二") && player.countCards("h") < player.maxHp) choices.push("选项二");
 					else choiceList[1] = '<span style="opacity:0.5;">' + choiceList[1] + "</span>";
-					if (goon && !history.length && choices.length == 2) {
-						event.result = {
-							bool: true,
-							cost_data: choices,
-						};
-					} else {
-						const control =
-							choices.length == 1
-								? choices[0]
-								: await player
-										.chooseControl(choices)
-										.set("prompt", get.prompt("twciyin"))
-										.set("choiceList", choiceList)
-										.set("ai", () => {
-											const player = get.player(),
-												num = player.maxHp - player.countCards("h");
-											return get.recoverEffect(player, player, player) > get.effect(player, { name: "draw" }, player, player) * num ? "选项一" : "选项二";
-										})
-										.forResultControl();
-						event.result = {
-							bool: true,
-							cost_data: [control],
-						};
-					}
+					const control =
+						choices.length == 1
+							? choices[0]
+							: await player
+									.chooseControl(choices)
+									.set("prompt", get.prompt("twciyin"))
+									.set("choiceList", choiceList)
+									.set("ai", () => {
+										const player = get.player(),
+											num = player.maxHp - player.countCards("h");
+										return get.recoverEffect(player, player, player) > get.effect(player, { name: "draw" }, player, player) * num ? "选项一" : "选项二";
+									})
+									.forResultControl();
+					event.result = {
+						bool: true,
+						cost_data: [control],
+					};
 				},
 				async content(event, trigger, player) {
 					if (event.cost_data.includes("选项一")) {
@@ -890,6 +886,7 @@ const skills = {
 				},
 			},
 			use: {
+				audio: "twbeiding",
 				trigger: {
 					global: "phaseDiscardEnd",
 				},
@@ -6373,7 +6370,7 @@ const skills = {
 			return (lib.skill.baonvezhi.baonvezhi_max || 5) - _status.event.player.countMark("baonvezhi");
 		},
 		check: function (card) {
-			return 6 - get.value(card);
+			return 8 - get.value(card);
 		},
 		position: "he",
 		filterTarget: function (card, player, target) {
@@ -6385,10 +6382,17 @@ const skills = {
 		ai: {
 			combo: "twjuntun",
 			expose: 0.25,
-			order: 8,
+			order: 1,
 			result: {
+				player(player, target) {
+					let num = -ui.selected.cards.length;
+					if (player.hasSkill("twxiongjun") && !player.storage.counttrigger?.twxiongjun) num += game.countPlayer(current => {
+						if (current.hasSkill("twxiongjun")) return get.sgnAttitude(player, current);
+					});
+					return num * get.effect(player, { name: "draw" }, player, player);
+				},
 				target: function (player, target) {
-					return get.damageEffect(target, player, player);
+					return get.damageEffect(target, player, target);
 				},
 			},
 		},
@@ -7241,7 +7245,7 @@ const skills = {
 		audio: 2,
 		trigger: { global: "damageEnd" },
 		filter: function (event, player) {
-			return event.player.isIn() && get.distance(player, event.player) <= 1;
+			return event.player.isIn() && get.distance(event.player, player) <= 1;
 		},
 		logTarget: "player",
 		check: function (event, player) {
@@ -9243,34 +9247,41 @@ const skills = {
 	twgyshenxing: {
 		audio: "xinshenxing",
 		enable: "phaseUse",
-		filter: function (event, player) {
-			return player.countCards("he") >= Math.min(2, player.countMark("twgyshenxing"));
+		filter(event, player) {
+			return player.countCards("he") >= Math.min(2, player.countMark("twgyshenxing_used"));
 		},
-		selectCard: function () {
-			return Math.min(2, _status.event.player.countMark("twgyshenxing"));
+		selectCard() {
+			return Math.min(2, _status.event.player.countMark("twgyshenxing_used"));
 		},
-		prompt: function () {
-			return "弃置" + get.cnNumber(Math.min(2, _status.event.player.countMark("twgyshenxing"))) + "张牌并摸一张牌";
+		prompt() {
+			return "弃置" + get.cnNumber(Math.min(2, _status.event.player.countMark("twgyshenxing_used"))) + "张牌并摸一张牌";
 		},
-		check: function (card) {
+		check(card) {
 			var num = _status.event.player.countCards("h", { color: get.color(card) });
 			if (get.position(card) == "e") num++;
 			return (Math.max(4, 7.1 - num) - get.value(card)) / num;
 		},
 		filterCard: true,
 		position: "he",
-		content: function () {
+		content() {
 			player.draw();
-			player.addMark("twgyshenxing", 1);
+			player.addTempSkill("twgyshenxing_used", "phaseUseAfer");
+			player.addMark("twgyshenxing_used", 1, false);
 		},
-		marktext: "慎",
-		intro: { content: "已发动过#次" },
 		ai: {
-			order: function (item, player) {
-				if (!player.hasMark("twgyshenxing")) return 10;
+			order(item, player) {
+				if (!player.hasMark("twgyshenxing_used")) return 10;
 				return 1;
 			},
 			result: { player: 1 },
+		},
+		subSkill: {
+			used: {
+				charlotte: true,
+				onremove: true,
+				marktext: "慎",
+				intro: { content: "已发动过#次" },
+			},
 		},
 	},
 	twbingyi: {
@@ -19269,14 +19280,14 @@ const skills = {
 	twtijin: {
 		audio: 2,
 		trigger: { global: "useCardToPlayer" },
-		filter: function (event, player) {
-			return event.card && event.card.name == "sha" && event.player != player && event.target != player && event.targets.length == 1 && event.player.inRange(player);
+		filter(event, player) {
+			return event.card?.name == "sha" && event.player != player && event.target != player && event.targets.length == 1 && player.inRange(event.player);
 		},
 		logTarget: "target",
-		check: function (event, player) {
+		check(event, player) {
 			return get.effect(event.targets[0], event.card, event.player, player) <= get.effect(player, event.card, event.player, player);
 		},
-		content: function () {
+		content() {
 			"step 0";
 			trigger.targets.length = 0;
 			trigger.getParent().triggeredTargets1.length = 0;

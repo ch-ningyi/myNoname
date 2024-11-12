@@ -74,6 +74,9 @@ const characterReplaces = {
 	wenpin: ["wenpin", "re_wenpin"],
 	liuyan: ["liuyan", "jsrg_liuyan", "junk_liuyan"],
 	buzhi: ["buzhi", "ty_buzhi"],
+	hanfu: ["hanfu", "ol_hanfu"],
+	niufu: ["niufu", "ol_niufu"],
+	dongxie: ["dongxie", "ol_dongxie"],
 };
 
 export default characterReplaces;
